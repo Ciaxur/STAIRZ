@@ -7,9 +7,9 @@ An RPi4 that triggers a Relay to power a custom 3W LED strip based on the distan
 
 ### 🚀 Build & Run
 ```shell
-mkdir build             # Build Directory (Optional but Cleaner)
-go build -o build/app   # Compile the Application
-./app                   # Run the Binary (Might need Elevated Privelages: sudo)
+mkdir build                     # Build Directory (Optional but Cleaner)
+go build -o build/app main.go   # Compile the Application
+./app                           # Run the Binary (Might need Elevated Privelages: sudo)
 ```
 
 ### Future Plans
