@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"time"
+	"bufio"
+	"os"
 
 	"github.com/stianeikeland/go-rpio"
 )
@@ -28,6 +30,7 @@ const (
 
 // Configuration Setup
 var sensorConf = SensorConfig{100, 80}
+var writer *bufio.Writer
 
 /**
  * Obtains Sensor Distance data for given
@@ -87,6 +90,10 @@ func listenToSensors(delay time.Duration) {
 
 		// Relay ON Delay
 		if relayIsOn {
+			// Log Activation
+			writer.Write([]byte(time.Now().String() + ": Relay ON\n"))
+			writer.Flush()
+
 			time.Sleep(RELAY_DELAY)
 			relayIsOn = false
 			RELAY_TRIGGER.Low()
@@ -100,10 +107,15 @@ func listenToSensors(delay time.Duration) {
 		dist2 := getDistance(SENSOR2_TRIGGER, SENSOR2_ECHO)
 		fmt.Printf("Distance of Sensor2: %.2fcm\n", dist2)
 
-		// Relay On! (Negative means Timed out)
-		if (dist1 <= sensorConf.s1_activeDist && dist1 > 0) || (dist2 <= sensorConf.s2_activeDist && dist2 > 0) {
+		// Relay On! (Negative means Timed out) - Sensor1 or Sensor2
+		if (dist1 <= sensorConf.s1_activeDist && dist1 > 0) {
 			relayIsOn = true
 			RELAY_TRIGGER.High()
+			writer.Write([]byte(fmt.Sprintf("Sensor1 - Triggered [%.2fcm]\n", dist1)))
+		} else if (dist2 <= sensorConf.s2_activeDist && dist2 > 0) {
+			relayIsOn = true
+			RELAY_TRIGGER.High()
+			writer.Write([]byte(fmt.Sprintf("Sensor2 - Triggered [%.2fcm]\n", dist2)))
 		}
 
 		// DEBUG: Log out Timeout
@@ -115,6 +127,12 @@ func listenToSensors(delay time.Duration) {
 	}
 }
 
+func check(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
 func main() {
 	// Init RPIO
 	if err := rpio.Open(); err != nil {
@@ -123,12 +141,20 @@ func main() {
 	}
 	defer rpio.Close()
 
+	// Init Log Output
+	filepath := "./out.log"
+	file, err := os.OpenFile(filepath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	check(err)
+	defer file.Close()
+	writer = bufio.NewWriter(file)
+	
 	// Initiate Pin Modes
 	RELAY_TRIGGER.Output()
 
 	// Listen to Sensors
-	go listenToSensors(50 * time.Millisecond)
+	listenToSensors(50 * time.Millisecond)
+	// go listenToSensors(50 * time.Millisecond)
 
 	// TODO: Do other tasks here...
-	time.Sleep(1 * time.Hour)
+	// time.Sleep(1 * time.Hour)
 }
