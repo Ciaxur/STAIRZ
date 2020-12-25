@@ -59,11 +59,11 @@ func getDistance(trigSensor rpio.Pin, echoSensor rpio.Pin) float64 {
 	pulseStart = time.Now()
 
 	// Times out after 2000 and 52000 Iterations Respectively
-	for i := 0; i < 2000 && SENSOR1_ECHO.Read() == 0; i++ {
+	for i := 0; i < 2000 && echoSensor.Read() == 0; i++ {
 		pulseStart = time.Now()
 	}
 
-	for i := 0; i < 52000 && SENSOR1_ECHO.Read() == 1; i++ {
+	for i := 0; i < 52000 && echoSensor.Read() == 1; i++ {
 		pulseEnd = time.Now()
 	}
 
