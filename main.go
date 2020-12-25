@@ -29,7 +29,7 @@ const (
 )
 
 // Configuration Setup
-var sensorConf = SensorConfig{100, 80}
+var sensorConf = SensorConfig{100, 70}
 var writer *bufio.Writer
 
 /**
@@ -101,10 +101,17 @@ func listenToSensors(delay time.Duration) {
 			RELAY_TRIGGER.Low()
 		}
 
-		// Get Distance from Sensors
+		// Get Distance from Sensors (Average two Samples)
 		dist1 := getDistance(SENSOR1_TRIGGER, SENSOR1_ECHO)
+		time.Sleep(25 * time.Millisecond)
+		dist1 += getDistance(SENSOR1_TRIGGER, SENSOR1_ECHO)
+		dist1 /= 2
 		fmt.Printf("Distance of Sensor1: %.2fcm\n", dist1)
+
 		dist2 := getDistance(SENSOR2_TRIGGER, SENSOR2_ECHO)
+		time.Sleep(25 * time.Millisecond)
+		dist2 += getDistance(SENSOR2_TRIGGER, SENSOR2_ECHO)
+		dist2 /= 2
 		fmt.Printf("Distance of Sensor2: %.2fcm\n", dist2)
 
 		// Relay On! (Negative means Timed out) - Sensor1 or Sensor2
@@ -154,6 +161,7 @@ func main() {
 	// Listen to Sensors
 	listenToSensors(50 * time.Millisecond)
 	// go listenToSensors(50 * time.Millisecond)
+	
 
 	// TODO: Do other tasks here...
 	// time.Sleep(1 * time.Hour)
