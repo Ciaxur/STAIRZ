@@ -1,0 +1,56 @@
+{
+  "name": "stairz-app",
+  "version": "0.0.1",
+  "description": "STAIRZ Electron Application for User Interaction with the system",
+  "main": "dist/app.js",
+  "scripts": {
+    "dev:electron:build": "cross-env NODE_ENV=development webpack --mode development --config webpack/electron.webpack.js",
+    "dev:electron:watch": "cross-env NODE_ENV=development webpack --mode development --watch --config webpack/electron.webpack.js",
+    "dev:react:build": "cross-env NODE_ENV=development webpack --mode development --config webpack/react.webpack.js",
+    "dev:react:watch": "cross-env NODE_ENV=development webpack --mode development --watch --config webpack/react.webpack.js",
+    "dev:build": "npm run dev:electron:build && npm run dev:react:build",
+    "dev:watch": "concurrently \"npm run dev:electron:watch\" \"npm run dev:react:watch\"",
+    "clean": "shx rm -rf dist",
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ciaxur/STAIRZ.git"
+  },
+  "author": "Omar Omar",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Ciaxur/STAIRZ/issues"
+  },
+  "homepage": "https://github.com/Ciaxur/STAIRZ",
+  "devDependencies": {
+    "@babel/core": "^7.12.10",
+    "@babel/preset-env": "^7.12.11",
+    "@babel/preset-react": "^7.12.10",
+    "@babel/preset-typescript": "^7.12.7",
+    "@typescript-eslint/eslint-plugin": "^4.12.0",
+    "@typescript-eslint/parser": "^4.12.0",
+    "babel-loader": "^8.2.2",
+    "concurrently": "^5.3.0",
+    "cross-env": "^7.0.3",
+    "electron": "^11.1.1",
+    "electron-builder": "^22.9.1",
+    "eslint": "^7.17.0",
+    "html-webpack-plugin": "^4.5.1",
+    "prettier": "^2.2.1",
+    "prettier-eslint": "^12.0.0",
+    "shx": "^0.3.3",
+    "typescript": "^4.1.3",
+    "webpack": "^5.12.3",
+    "webpack-cli": "^4.3.1",
+    "webpack-dev-server": "^3.11.1"
+  },
+  "dependencies": {
+    "@material-ui/core": "^4.11.2",
+    "@material-ui/icons": "^4.11.2",
+    "@types/react": "^17.0.0",
+    "@types/react-dom": "^17.0.0",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1"
+  }
+}
