@@ -1,10 +1,15 @@
 import { app, BrowserWindow } from 'electron';
 
 const createWindow = () => {
+  const browserOptions = process.env.NODE_ENV !== 'development'
+    ? { fullscreen: true }
+    : {
+      width: 110 * 10,
+      height: 80 * 10,
+    };
+  
   const win = new BrowserWindow({
-    width: 110 * 10,
-    height: 80 * 10,
-    // fullscreen: true,
+    ...browserOptions,
     webPreferences: {
       nodeIntegration: true,
     },
