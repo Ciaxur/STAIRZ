@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"time"
 	"bufio"
+	"fmt"
 	"os"
+	"time"
 
 	"github.com/stianeikeland/go-rpio"
 )
@@ -115,11 +115,11 @@ func listenToSensors(delay time.Duration) {
 		fmt.Printf("Distance of Sensor2: %.2fcm\n", dist2)
 
 		// Relay On! (Negative means Timed out) - Sensor1 or Sensor2
-		if (dist1 <= sensorConf.s1_activeDist && dist1 > 0) {
+		if dist1 <= sensorConf.s1_activeDist && dist1 > 0 {
 			relayIsOn = true
 			RELAY_TRIGGER.High()
 			writer.Write([]byte(fmt.Sprintf("Sensor1 - Triggered [%.2fcm]\n", dist1)))
-		} else if (dist2 <= sensorConf.s2_activeDist && dist2 > 0) {
+		} else if dist2 <= sensorConf.s2_activeDist && dist2 > 0 {
 			relayIsOn = true
 			RELAY_TRIGGER.High()
 			writer.Write([]byte(fmt.Sprintf("Sensor2 - Triggered [%.2fcm]\n", dist2)))
@@ -154,14 +154,13 @@ func main() {
 	check(err)
 	defer file.Close()
 	writer = bufio.NewWriter(file)
-	
+
 	// Initiate Pin Modes
 	RELAY_TRIGGER.Output()
 
 	// Listen to Sensors
 	listenToSensors(50 * time.Millisecond)
 	// go listenToSensors(50 * time.Millisecond)
-	
 
 	// TODO: Do other tasks here...
 	// time.Sleep(1 * time.Hour)

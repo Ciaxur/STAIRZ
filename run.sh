@@ -4,5 +4,6 @@
 sudo echo "Running App in Background..."
 
 # No stdout, only output Error to a log
-$( $(sudo ./build/app > /dev/null 2> stderr.log))&
+# Run Process with Nice Value (Priority) of 1
+$( $(sudo nice -n 1 ./build/app > /dev/null 2> stderr.log))&
 disown
