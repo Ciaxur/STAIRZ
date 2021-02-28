@@ -1,12 +1,14 @@
 package main
 
 import (
-	"bufio"
+	"database/sql"
 	"fmt"
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stianeikeland/go-rpio"
+	"github.com/joho/godotenv"
 )
 
 // SensorConfig - Sensor Configurations
@@ -29,8 +31,8 @@ const (
 )
 
 // Configuration Setup
+var db *sql.DB
 var sensorConf = SensorConfig{100, 70}
-var writer *bufio.Writer
 
 // Obtains Sensor Distance data for given sensor
 // @param trigSensor Trigger Sensor
@@ -38,20 +40,17 @@ var writer *bufio.Writer
 // @returns Distance Data for Sensor
 func getDistance(trigSensor rpio.Pin, echoSensor rpio.Pin) float64 {
 	// Clear TriggerPin
-	fmt.Println("Waiting for Trigger to settle...")
 	trigSensor.Output()
 	trigSensor.Low()
 	time.Sleep(10 * time.Millisecond)
 
 	// Set Trigger High for 10us
-	fmt.Println("Triggering for 10us")
 	trigSensor.High()
 	time.Sleep(1 * time.Microsecond)
 	trigSensor.Low()
 
 	// Get Echo Pin Data
 	echoSensor.Input()
-	fmt.Println("Reading Echo...")
 	var pulseStart, pulseEnd time.Time
 	pulseStart = time.Now()
 
@@ -66,7 +65,6 @@ func getDistance(trigSensor rpio.Pin, echoSensor rpio.Pin) float64 {
 
 	// time difference between start and arrival
 	elapsedTime := pulseEnd.Sub(pulseStart)
-	// fmt.Printf("Elapsed Time %d\n", elapsedTime.Milliseconds())
 	// multiply with the sonic speed (34300 cm/s)
 	// and divide by 2, because there and back
 	distance := 17150 * elapsedTime.Seconds()
@@ -85,10 +83,6 @@ func listenToSensors(delay time.Duration) {
 
 		// Relay ON Delay
 		if relayIsOn {
-			// Log Activation
-			writer.Write([]byte(time.Now().String() + ": Relay ON\n"))
-			writer.Flush()
-
 			time.Sleep(RELAY_DELAY)
 			relayIsOn = false
 			RELAY_TRIGGER.Low()
@@ -101,30 +95,25 @@ func listenToSensors(delay time.Duration) {
 		time.Sleep(25 * time.Millisecond)
 		dist1 += getDistance(SENSOR1_TRIGGER, SENSOR1_ECHO)
 		dist1 /= 2
-		fmt.Printf("Distance of Sensor1: %.2fcm\n", dist1)
 
 		dist2 := getDistance(SENSOR2_TRIGGER, SENSOR2_ECHO)
 		time.Sleep(25 * time.Millisecond)
 		dist2 += getDistance(SENSOR2_TRIGGER, SENSOR2_ECHO)
 		dist2 /= 2
-		fmt.Printf("Distance of Sensor2: %.2fcm\n", dist2)
 
 		// Relay On! (Negative means Timed out) - Sensor1 or Sensor2
 		if dist1 <= sensorConf.s1_activeDist && dist1 > 0 {
 			relayIsOn = true
 			RELAY_TRIGGER.High()
-			writer.Write([]byte(fmt.Sprintf("Sensor1 - Triggered [%.2fcm]\n", dist1)))
+			id, _ := uuid.NewUUID()
+
+			CreateEventDb(db, id.String(), 1, EventActive, dist1)
 		} else if dist2 <= sensorConf.s2_activeDist && dist2 > 0 {
 			relayIsOn = true
 			RELAY_TRIGGER.High()
-			writer.Write([]byte(fmt.Sprintf("Sensor2 - Triggered [%.2fcm]\n", dist2)))
-		}
+			id, _ := uuid.NewUUID()
 
-		// DEBUG: Log out Timeout
-		if dist1 < 0 {
-			fmt.Println("Senser 1 Timed out")
-		} else if dist2 < 0 {
-			fmt.Println("Senser 2 Timed out")
+			CreateEventDb(db, id.String(), 2, EventActive, dist2)
 		}
 	}
 }
@@ -136,19 +125,29 @@ func check(err error) {
 }
 
 func main() {
+	// Load in .env Variables
+	CheckError(godotenv.Load(), "dotenv Configure Error Loading .env File", true)
+
+	// Initialize Database
+	db = InitDatabase(DatabaseOptions{
+		os.Getenv("PSQL_HOST"),
+		os.Getenv("PSQL_PORT"),
+		os.Getenv("PSQL_USER"),
+		os.Getenv("PSQL_PSWD"),
+		os.Getenv("PSQL_DB"),
+	})
+	defer db.Close()
+
+	// Try to Create Relays in DB
+	CreateRelayDb(db, 1, "Bottom Relay", "Sensor at thy bottom")
+	CreateRelayDb(db, 2, "Top Relay", "Sensor at thy top")
+
 	// Init RPIO
 	if err := rpio.Open(); err != nil {
 		fmt.Println("Run as Sudo!")
 		fmt.Printf("Error: %v\n", err)
 	}
 	defer rpio.Close()
-
-	// Init Log Output
-	filepath := "./out.log"
-	file, err := os.OpenFile(filepath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
-	check(err)
-	defer file.Close()
-	writer = bufio.NewWriter(file)
 
 	// Initiate Pin Modes
 	RELAY_TRIGGER.Output()
