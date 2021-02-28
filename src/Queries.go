@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// EventType - Enum Alternative for type of event triggered
 type EventType string
 
 const (
