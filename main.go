@@ -32,13 +32,10 @@ const (
 var sensorConf = SensorConfig{100, 70}
 var writer *bufio.Writer
 
-/**
- * Obtains Sensor Distance data for given
- *  sensor
- * @param trigSensor Trigger Sensor
- * @param echoSensor Echo Sensor
- * @returns Distance Data for Sensor
- */
+// Obtains Sensor Distance data for given sensor
+// @param trigSensor Trigger Sensor
+// @param echoSensor Echo Sensor
+// @returns Distance Data for Sensor
 func getDistance(trigSensor rpio.Pin, echoSensor rpio.Pin) float64 {
 	// Clear TriggerPin
 	fmt.Println("Waiting for Trigger to settle...")
@@ -76,10 +73,8 @@ func getDistance(trigSensor rpio.Pin, echoSensor rpio.Pin) float64 {
 	return distance
 }
 
-/**
- * Listens to Sensors given a delay
- * @param delay Time Delay
- */
+// Listens to Sensors given a delay
+// @param delay Time Delay
 func listenToSensors(delay time.Duration) {
 	// Local Sensor State
 	relayIsOn := false
